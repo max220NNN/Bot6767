@@ -1,14 +1,16 @@
+import os
+import datetime
 import discord
 from discord import app_commands
 from discord.ext import commands
 
-# ==================== НАСТРОЙКИ ====================
-TOKEN = "MTUzODkxODAwMjkyMDI2NzkyOA.Gxa0C4.1i6EKs7FBFGPc7QQlKsIKWfWriy-HUQP0t-xzM"
-
-GUILD_ID = 1538576529506836500          # ID вашего сервера
-LEADER_ROLE_ID = 1538583737132916847    # ID роли "Лидер"
-TICKET_CATEGORY_ID = 1538578924299358258    # ID категории, куда будут падать тикеты
-# =====================================================
+# ==================== НАСТРОЙКИ (из переменных окружения Railway) ====================
+TOKEN = os.environ["DISCORD_TOKEN"]
+GUILD_ID = int(os.environ["GUILD_ID"])
+LEADER_ROLE_ID = int(os.environ["LEADER_ROLE_ID"])
+ADMIN_ROLE_ID = int(os.environ.get("ADMIN_ROLE_ID", "0"))          # необязательно
+TICKET_CATEGORY_ID = int(os.environ["TICKET_CATEGORY_ID"])
+# =======================================================================================
 
 intents = discord.Intents.default()
 intents.members = True
@@ -41,7 +43,7 @@ class CloseTicketView(discord.ui.View):
 
         await interaction.response.send_message("Тикет будет закрыт через 5 секунд...")
         await interaction.channel.send(f"Тикет закрыт пользователем {member.mention}.")
-        await discord.utils.sleep_until(discord.utils.utcnow() + __import__("datetime").timedelta(seconds=5))
+        await discord.utils.sleep_until(discord.utils.utcnow() + datetime.timedelta(seconds=5))
         await interaction.channel.delete()
 
 
@@ -65,7 +67,7 @@ class OpenTicketView(discord.ui.View):
 
         category = guild.get_channel(TICKET_CATEGORY_ID)
         leader_role = guild.get_role(LEADER_ROLE_ID)
-        admin_role = guild.get_role(ADMIN_ROLE_ID)
+        admin_role = guild.get_role(ADMIN_ROLE_ID) if ADMIN_ROLE_ID else None
 
         # Права: видит только автор + лидер/админ. Остальным всё запрещено.
         overwrites = {
